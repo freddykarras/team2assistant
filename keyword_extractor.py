@@ -46,7 +46,8 @@ TAXONOMY = {
     r"\bvr\b|\bvirtual reality\b": ["virtual reality"],
     r"\bar\b|\baugmented reality\b": ["augmented reality"],
     # Security
-    r"\bcyber ?security\b|\bhacking\b|\bweb security\b|\bmalware\b": ["cybersecurity", "security and privacy"],
+    r"\bcyber ?security\b|\bhacking\b|\bweb security\b|\bmalware\b|"
+    r"\bvulnerability scann(?:er|ers|ing)\b": ["cybersecurity", "security and privacy"],
     r"\bprivacy\b": ["privacy", "security and privacy"],
     r"\bcryptography\b|\bencryption\b": ["applied cryptography"],
     # Data

@@ -11,6 +11,7 @@ Pipeline Architecture:
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -52,50 +53,71 @@ FACULTY_DATABASE = load_faculty_database()
 # ==============================================================================
 # STAGE 2: MADELINE'S DEMOGRAPHIC MASKING PRE-PROCESSOR
 # ==============================================================================
+# Academic standing, grades, GPA, courses, and experience are intentionally
+# absent: they describe preparation and must survive preprocessing.
+_DEMOGRAPHIC_TERMS = re.compile(
+    r"\b(?:woman|women|man|men|female|male|asian|black|hispanic|white)\b",
+    re.IGNORECASE,
+)
+# These words also occur in research terminology. Protect common phrases
+# before matching individual demographic words.
+_TECHNICAL_PHRASES = re.compile(
+    r"\b(?:black[- ]box|white[- ]box|black[- ]hat|white[- ]hat|"
+    r"white\s+papers?|white\s+noise|black\s+holes?|"
+    r"man[- ]in[- ]the[- ]middle)\b",
+    re.IGNORECASE,
+)
+
+
 def mask_demographics(raw_input: str) -> str:
     """
-    Strips demographic markers (gender, race, class standing) from raw student input
-    while preserving technical skills and project context.
+    Mask the configured gender/race terms, preserving academic preparation.
+
+    Match complete words regardless of case, never substrings such as "man"
+    in "human". This bounded heuristic is not comprehensive anonymization:
+    names and unlisted demographics are not detected, and ambiguous research
+    contexts beyond the protected phrases require review.
     """
-    masked = raw_input
-    sensitive_words = [
-        "woman", "man", "female", "male", "Asian", "Black", "Hispanic", "White",
-        "freshman", "sophomore", "junior", "senior", "first-year"
-    ]
-    for word in sensitive_words:
-        masked = masked.replace(word, "").replace("  ", " ")
-    return masked.strip()
+    protected = [match.span() for match in _TECHNICAL_PHRASES.finditer(raw_input)]
+
+    def replace(match):
+        if any(start <= match.start() and match.end() <= end
+               for start, end in protected):
+            return match.group()
+        return "[DEMOGRAPHIC]"
+
+    return _DEMOGRAPHIC_TERMS.sub(replace, raw_input)
 
 # ==============================================================================
 # STAGE 4: SINDHU'S RETRIEVAL ENGINE (MATCHES MRITHIKA'S EXTRACTED TAGS)
 # ==============================================================================
-def retrieve_faculty(tags: list) -> dict:
+def retrieve_faculty(tags: list):
     """
     Scores every faculty member in Sindhu's 79-record dataset against Mrithika's tags:
       - Exact match in professor's keywords array = +2 pts
       - Word overlap in professor's keywords array = +1 pt
-    Returns the highest-scoring faculty object from faculty_data.json.
+    Returns the highest-scoring faculty object, or None without positive evidence.
     """
     best_match = None
-    best_score = -1
+    best_score = 0
 
     for prof in FACULTY_DATABASE:
         score = 0
         prof_keywords = [k.lower() for k in prof.get("keywords", [])]
         
-        for tag in tags:
+        for tag in dict.fromkeys(tag.lower().strip() for tag in tags if tag.strip()):
             tag_lower = tag.lower()
             if tag_lower in prof_keywords:
                 score += 2
-            elif any(word in kw for kw in prof_keywords for word in tag_lower.split()):
+            elif any(set(re.findall(r"\w+", tag_lower)) &
+                     set(re.findall(r"\w+", kw)) for kw in prof_keywords):
                 score += 1
                 
         if score > best_score:
             best_score = score
             best_match = prof
 
-    # Fallback to first professor if no tags match
-    return best_match if best_match else FACULTY_DATABASE[0]
+    return best_match
 
 # ==============================================================================
 # STAGE 5: FREDDY'S DUAL GUIDANCE GENERATOR
@@ -196,6 +218,10 @@ def run_demo():
 
         # Step 4: Sindhu's Retrieval Engine (Searches all 79 faculty in JSON)
         faculty_match = retrieve_faculty(extracted_tags)
+        if faculty_match is None:
+            print("[STEP 4: FACULTY RETRIEVAL] -> No supported faculty match. "
+                  "Please describe a research interest or project in more detail.")
+            continue
         print(f"[STEP 4: SINDHU'S RETRIEVAL] -> Best Match: {faculty_match['name']} ({faculty_match['id']})")
 
         # Step 5: Dual Guidance Generation
