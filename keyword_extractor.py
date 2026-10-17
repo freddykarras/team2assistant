@@ -1,7 +1,7 @@
 """
 keyword_extractor.py -- VTURCS Fall 2026, Team 2, Stage 3. Owner: Mrithika.
 
-Interface expected by run_pipeline_demo.py:
+Interface used by main.py:
     extract_keywords(masked_text) -> list[str]
 
 The returned tags are phrases from the faculty_data.json "keywords" vocabulary,
@@ -20,11 +20,10 @@ Design:
   - Expects text that has already been through Madeline's masking stage.
 """
 
-import json
 import re
-from pathlib import Path
 
-DATA_PATH = Path(__file__).with_name("faculty_data.json")
+from faculty_data import DATA_PATH, load_faculty_database, vocabulary
+
 MAX_TAGS = 5
 
 # Student wording -> canonical faculty-vocabulary phrase(s).
@@ -45,9 +44,11 @@ TAXONOMY = {
     r"\binteraction design\b|\baccessibility\b": ["human-computer interaction"],
     r"\bvr\b|\bvirtual reality\b": ["virtual reality"],
     r"\bar\b|\baugmented reality\b": ["augmented reality"],
-    # Security
+    # Security. CS 4264 verified against https://courses.cs.vt.edu/~cs4264/
+    # (Principles of Computer Security); a bare number or generic scanner is not enough.
+    r"\bcs\s*[- ]?\s*4264\b": ["cybersecurity", "security and privacy"],
     r"\bcyber ?security\b|\bhacking\b|\bweb security\b|\bmalware\b|"
-    r"\bvulnerability scann(?:er|ers|ing)\b": ["cybersecurity", "security and privacy"],
+    r"\bvulnerabilit(?:y|ies)\b|\bpenetration testing\b|\bSQL injection\b|\bcross[- ]site scripting\b": ["cybersecurity", "security and privacy"],
     r"\bprivacy\b": ["privacy", "security and privacy"],
     r"\bcryptography\b|\bencryption\b": ["applied cryptography"],
     # Data
@@ -70,34 +71,53 @@ TAXONOMY = {
     r"\bquantum\b": ["quantum computing"],
 }
 
-_vocab_cache = None
+# Only known placeholder tokens are removed; user brackets remain searchable.
+_MASK_TOKENS = re.compile(r"\[(?:DEMOGRAPHIC|PERSONAL|NAME-INTRO|PRONOUNS)\]", re.I)
+_NEGATION = re.compile(
+    r"\b(?:not(?!\s+(?:only|just|sure)\b)|never\s+(?:want|interested)|"
+    r"(?:do\s+not|don't|don’t)\s+(?:want|like|enjoy)|"
+    r"no\s+interest\s+in|avoid(?:ing)?|exclude)\b", re.I
+)
+_CONTRAST = re.compile(
+    r"[.!?;\n]|\b(?:but|however|instead|rather)\b|"
+    r"\band\s+(?=(?:I\b|want\b|like\b|enjoy\b|am\s+interested))", re.I
+)
+
+
+def positive_interest_text(text):
+    """Exclude simple negative clauses, keeping later contrast clauses.
+
+    Complex negation, sarcasm and ambiguous wording are not fully understood.
+    This deliberately uses conservative rules rather than guessing intent.
+    """
+    clauses = []
+    for clause in _CONTRAST.split(_MASK_TOKENS.sub(" ", text)):
+        negative = _NEGATION.search(clause)
+        clauses.append(clause[:negative.start()] if negative else clause)
+    return " . ".join(clauses).lower()
 
 
 def load_vocab(path=DATA_PATH):
-    """Distinct lowercased faculty keywords, from faculty_data.json."""
-    global _vocab_cache
-    if _vocab_cache is None:
-        try:
-            with open(path, encoding="utf-8") as f:
-                faculty = json.load(f)["faculty"]
-            _vocab_cache = sorted({k.lower() for p in faculty for k in p["keywords"]})
-        except (OSError, KeyError, ValueError):
-            _vocab_cache = []
-    return _vocab_cache
+    # No process-wide cache: different datasets and corrected files must be read.
+    return vocabulary(load_faculty_database(path))
 
 
 def extract_keywords(masked_text, vocab=None, max_tags=MAX_TAGS):
     """Return up to max_tags faculty-vocabulary phrases for the student's text."""
+    if not isinstance(masked_text, str):
+        raise TypeError("Research description must be text.")
+    if not isinstance(max_tags, int) or isinstance(max_tags, bool) or max_tags < 0:
+        raise ValueError("max_tags must be a nonnegative integer.")
     vocab = load_vocab() if vocab is None else vocab
-    vset = set(vocab)
-    low = re.sub(r"\[[^\]]*\]", " ", masked_text.lower())  # drop mask tokens like [NAME-INTRO]
+    vset = {phrase.strip().lower() for phrase in vocab if phrase.strip()}
+    low = positive_interest_text(masked_text)
 
     # (position, tag) so output order follows the student's own wording
     hits = {}
 
     # 1) vocabulary phrases found verbatim (longest first, so specific beats generic)
     claimed = []
-    for phrase in sorted(vset, key=len, reverse=True):
+    for phrase in sorted(vset, key=lambda phrase: (-len(phrase), phrase)):
         if len(phrase) < 4:
             continue
         for m in re.finditer(r"(?<![a-z])" + re.escape(phrase) + r"(?![a-z])", low):
@@ -116,7 +136,7 @@ def extract_keywords(masked_text, vocab=None, max_tags=MAX_TAGS):
             if canon in vset and canon not in hits:
                 hits[canon] = (1, m.start())
 
-    ordered = sorted(hits, key=lambda t: hits[t])  # verbatim matches first, then mapped
+    ordered = sorted(hits, key=lambda t: (*hits[t], t))  # verbatim matches first, then mapped
     return ordered[:max_tags]
 
 
