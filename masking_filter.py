@@ -51,7 +51,13 @@ def mask_demographics(text: str) -> str:
                 return "students"
             return "[DEMOGRAPHIC]"
 
-        return _TERMS.sub(replace, phrase)
+        phrase = _TERMS.sub(replace, phrase)
+        return re.sub(
+            r"\b(students?)(?:\s+\1)+\b",
+            r"\1",
+            phrase,
+            flags=re.IGNORECASE,
+        )
 
     masked = _INTRO.sub(mask_intro, text)
     masked = _LABEL.sub("[PERSONAL]", masked)
