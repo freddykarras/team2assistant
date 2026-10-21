@@ -6,7 +6,7 @@ Demographic terms describing research subjects are intentionally preserved.
 
 import re
 
-_IDENTITY = r"(?:women|woman|men|man|female|male|non[- ]binary|Asian|Black|Hispanic|White|Latino|Latina)"
+_IDENTITY = r"(?:women|woman|men|man|female|male|non[- ]?binary|Asian|Black|Hispanic|White|Latino|Latina)"
 _INTRO = re.compile(
     r"\b(?:I\s+am|I'm|I’m|as)\s+(?:an?\s+)?"
     r"(?:(?:first[- ]year|freshman|sophomore|junior|senior|student|CS\s+major|"
