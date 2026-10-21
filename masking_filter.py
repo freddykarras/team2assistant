@@ -43,6 +43,12 @@ def mask_demographics(text: str) -> str:
             end = match.start() + term.end()
             if any(a <= start and end <= b for a, b in protected):
                 return term.group()
+            if term.group().lower() in {
+                "woman", "man", "female", "male", "non binary", "nonbinary", "non-binary"
+            }:
+                return "student"
+            if term.group().lower() in {"women", "men"}:
+                return "students"
             return "[DEMOGRAPHIC]"
 
         return _TERMS.sub(replace, phrase)
