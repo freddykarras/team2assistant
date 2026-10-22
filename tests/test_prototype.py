@@ -235,6 +235,50 @@ class ExtractionTests(unittest.TestCase):
             [],
         )
 
+    def test_security_project_phrases_are_not_zero_tag(self):
+        for text in (
+            "I play CTF competitions", "I did reverse engineering",
+            "I studied buffer overflows", "I built a port scanner",
+            "I set up a firewall", "intrusion detection project",
+            "I did pentesting on a web app",
+        ):
+            with self.subTest(text=text):
+                tags = extract_keywords(text)
+                self.assertIn("cybersecurity", tags)
+                self.assertIn("security and privacy", tags)
+
+    def test_systems_project_phrases_are_not_zero_tag(self):
+        expected = {
+            "I wrote a Linux kernel module": "operating systems",
+            "I built a TCP socket chat server": "networking",
+            "I deployed a Docker app to AWS": "cloud computing",
+            "I programmed an Arduino": "embedded/iot systems",
+            "I wrote CUDA code for a GPU": "high performance computing",
+            "I ran virtual machines": "virtualization",
+            "I took CS 3214": "systems",
+            "I am in CS 4284": "networking",
+        }
+        for text, tag in expected.items():
+            with self.subTest(text=text):
+                self.assertIn(tag, extract_keywords(text))
+
+    def test_everyday_words_do_not_trigger_systems_or_security_tags(self):
+        for text in (
+            "I built a calendar scheduler app", "My home router is slow",
+            "I like the exploit of a good bargain", "I need a new scanner for receipts",
+            "I want the mpi score", "cloudy weather today",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(extract_keywords(text), [])
+
+    def test_every_taxonomy_target_exists_in_vocabulary(self):
+        from keyword_extractor import TAXONOMY
+        vocab = set(load_vocab())
+        missing = sorted(
+            {tag for tags in TAXONOMY.values() for tag in tags} - vocab
+        )
+        self.assertEqual(missing, [])
+
     def test_max_tags_and_normalized_vocabulary(self):
         self.assertEqual(
             extract_keywords("machine learning", ["Machine Learning"]),
