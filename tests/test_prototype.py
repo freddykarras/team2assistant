@@ -337,14 +337,19 @@ class RetrievalTests(unittest.TestCase):
 
 class PipelineTests(unittest.TestCase):
     def test_survey_and_tier_validation(self):
-        self.assertEqual(classify_experience(False, False, False), "Novice")
-        self.assertEqual(
-            classify_experience(False, True, False), "Intermediate"
-        )
-        self.assertEqual(
-            classify_experience(False, False, True), "Intermediate"
-        )
-        self.assertEqual(classify_experience(True, False, False), "Experienced")
+        cases = [
+            ((False, False, False), "Novice"),
+            ((True, False, False), "Intermediate"),
+            ((False, True, False), "Intermediate"),
+            ((False, False, True), "Intermediate"),
+            ((True, True, False), "Intermediate"),
+            ((True, False, True), "Intermediate"),
+            ((False, True, True), "Intermediate"),
+            ((True, True, True), "Experienced"),
+        ]
+        for answers, expected in cases:
+            with self.subTest(answers=answers):
+                self.assertEqual(classify_experience(*answers), expected)
         self.assertEqual(normalize_tier(" novice "), "Novice")
         with self.assertRaises(ValueError):
             normalize_tier("expert")

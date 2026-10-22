@@ -29,9 +29,15 @@ _TECHNICAL = re.compile(
     re.IGNORECASE,
 )
 
+# Stop before a new clause or academic information, not after consuming it.
+_DISCLOSURE_END = (
+    r"(?=[,;\n.!?]|\s+(?:GPA|grades?|courses?|experience|interests?|"
+    r"I|my|and|with|research|\d)\b|$)"
+)
 _LABEL = re.compile(
-    r"\b(?:gender|race|ethnicity|pronouns|age|name)\s*:\s*[^;\n.]+?"
-    r"(?=\s+\b(?:GPA|grades?|courses?|experience)\b|[;\n.]|$)",
+    r"(?P<prefix>(?:^|[;\n])\s*)"
+    r"(?:gender|race|ethnicity|pronouns|age|name)\s*:\s*[^,;\n.!?]+?"
+    + _DISCLOSURE_END,
     re.IGNORECASE,
 )
 
@@ -73,6 +79,12 @@ def mask_demographics(text: str) -> str:
             value = term.group().lower()
 
             if value in _SINGULAR_GENDER:
+                # Preserve an explicit non-student role rather than inventing
+                # "student professor" or "student engineer".
+                suffix = text[end:]
+                if re.match(r"\s+(?:professor|researcher|engineer|teacher|developer|scientist)\b",
+                            suffix, re.IGNORECASE):
+                    return "[DEMOGRAPHIC]"
                 return "student"
 
             if value in _PLURAL_GENDER:
@@ -109,7 +121,7 @@ def mask_demographics(text: str) -> str:
         return phrase
 
     masked = _INTRO.sub(mask_intro, text)
-    masked = _LABEL.sub("[PERSONAL]", masked)
+    masked = _LABEL.sub(lambda m: m.group("prefix") + "[PERSONAL]", masked)
 
     masked = re.sub(
         r"\bmy\s+pronouns\s+are\s+[a-z]+(?:\s*/\s*[a-z]+)+",
@@ -125,13 +137,10 @@ def mask_demographics(text: str) -> str:
         flags=re.IGNORECASE,
     )
 
-    # Only mask explicit name introductions.
+    # Only mask explicit name introductions, stopping at the next clause.
     masked = re.sub(
-        r"\bmy name is\s+[^.;\n]+?"
-        r"(?=\s+(?:and|GPA|grades?|courses?|experience)\b|[.;\n]|$)",
-        "[PERSONAL]",
-        masked,
-        flags=re.IGNORECASE,
+        r"\bmy name is\s+[^,.;\n!?]+?" + _DISCLOSURE_END,
+        "[PERSONAL]", masked, flags=re.IGNORECASE,
     )
 
     return masked

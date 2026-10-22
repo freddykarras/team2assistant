@@ -48,7 +48,7 @@ TAXONOMY = {
     # (Principles of Computer Security); a bare number or generic scanner is not enough.
     r"\bcs\s*[- ]?\s*4264\b": ["cybersecurity", "security and privacy"],
     r"\bcyber ?security\b|\bhacking\b|\bweb security\b|\bmalware\b|"
-    r"\bvulnerabilit(?:y|ies)\b|\bpenetration testing\b|\bSQL injection\b|\bcross[- ]site scripting\b": ["cybersecurity", "security and privacy"],
+    r"\bvulnerabilit(?:y|ies)\b|\bpenetration testing\b|\bsql injection\b|\bcross[- ]site scripting\b": ["cybersecurity", "security and privacy"],
     r"\bprivacy\b": ["privacy", "security and privacy"],
     r"\bcryptography\b|\bencryption\b": ["applied cryptography"],
     # Data
@@ -76,7 +76,7 @@ _MASK_TOKENS = re.compile(r"\[(?:DEMOGRAPHIC|PERSONAL|NAME-INTRO|PRONOUNS)\]", r
 _NEGATION = re.compile(
     r"\b(?:not(?!\s+(?:only|just|sure)\b)|never\s+(?:want|interested)|"
     r"(?:do\s+not|don't|don’t)\s+(?:want|like|enjoy)|"
-    r"no\s+interest\s+in|avoid(?:ing)?|exclude)\b", re.I
+    r"(?:do not|don't|don’t)\s+have\s+(?:any\s+)?interest\s+in|no\s+interest\s+in|dislike|hate|avoid(?:ing)?|exclude)\b", re.I
 )
 _CONTRAST = re.compile(
     r"[.!?;\n]|\b(?:but|however|instead|rather)\b|"
@@ -85,13 +85,29 @@ _CONTRAST = re.compile(
 
 
 def positive_interest_text(text):
-    """Exclude simple negative clauses, keeping later contrast clauses.
+    """Handle simple preference negation without discarding experience gaps.
 
-    Complex negation, sarcasm and ambiguous wording are not fully understood.
-    This deliberately uses conservative rules rather than guessing intent.
+    Negation is bounded by clauses. Ambiguous prose still requires user review;
+    this is not a general natural-language understanding model.
     """
+    text = _MASK_TOKENS.sub(" ", text)
+    # Lack of experience is not a rejection of a research topic.
+    text = re.sub(
+        r"\b(?:do not|don't|don’t)\s+have\s+(?=(?:(?:any|prior|research|lab|much|hands-on)\s+)*"
+        r"(?:experience|background|training)\b)|"
+        r"\bnot\s+(?=(?:experienced|familiar)\b)", " ", text, flags=re.I
+    )
     clauses = []
-    for clause in _CONTRAST.split(_MASK_TOKENS.sub(" ", text)):
+    for clause in _CONTRAST.split(text):
+        # Subject-before-negation forms otherwise leave the rejected topic in
+        # the prefix: "Cybersecurity is not for me" or "AI doesn't interest me".
+        if re.search(
+            r"\b(?:(?:is|are)\s+not|isn't|isn’t|aren't|aren’t)\s+(?:for me|(?:my|an?)\s+(?:interest|preference)|"
+            r"what I (?:want|like))\b|"
+            r"\b(?:doesn't|does not|doesn’t|don't|do not|don’t)\s+interest\s+me\b",
+            clause, re.I,
+        ):
+            continue
         negative = _NEGATION.search(clause)
         clauses.append(clause[:negative.start()] if negative else clause)
     return " . ".join(clauses).lower()
@@ -109,7 +125,9 @@ def extract_keywords(masked_text, vocab=None, max_tags=MAX_TAGS):
     if not isinstance(max_tags, int) or isinstance(max_tags, bool) or max_tags < 0:
         raise ValueError("max_tags must be a nonnegative integer.")
     vocab = load_vocab() if vocab is None else vocab
-    vset = {phrase.strip().lower() for phrase in vocab if phrase.strip()}
+    if not isinstance(vocab, (list, tuple, set)) or any(not isinstance(phrase, str) for phrase in vocab):
+        raise ValueError("Vocabulary must be a collection of text phrases.")
+    vset = {" ".join(phrase.lower().split()) for phrase in vocab if phrase.strip()}
     low = positive_interest_text(masked_text)
 
     # (position, tag) so output order follows the student's own wording
@@ -120,7 +138,7 @@ def extract_keywords(masked_text, vocab=None, max_tags=MAX_TAGS):
     for phrase in sorted(vset, key=lambda phrase: (-len(phrase), phrase)):
         if len(phrase) < 4:
             continue
-        for m in re.finditer(r"(?<![a-z])" + re.escape(phrase) + r"(?![a-z])", low):
+        for m in re.finditer(r"(?<!\w)" + r"\s+".join(re.escape(part) for part in phrase.split()) + r"(?!\w)", low):
             s, e = m.span()
             if any(s < ce and cs < e for cs, ce in claimed):
                 continue
@@ -129,7 +147,7 @@ def extract_keywords(masked_text, vocab=None, max_tags=MAX_TAGS):
 
     # 2) taxonomy: student wording -> canonical vocabulary phrase
     for pattern, canon_list in TAXONOMY.items():
-        m = re.search(pattern, low)
+        m = re.search(pattern, low, flags=re.IGNORECASE)
         if not m:
             continue
         for canon in canon_list:

@@ -48,11 +48,19 @@ JSON goes to standard output and contains tags, rankings, score evidence, tie co
 
 Use `--data path/to/faculty.json` for an alternate dataset and `--help` for all options. Data is loaded relative to the application by default, so running from another working directory also works. Errors produce a readable message and exit status 2; ending an interactive session with Ctrl+C/EOF exits with 130. A legitimate no-match result exits successfully with 0.
 
+## October 21 correctness update (v2.1)
+
+This update preserves the team's neutral gender wording and fixes name masking that could consume GPA values. Structured personal labels must start a line or follow a semicolon, so project names are not treated as personal names. Explicit professional roles are preserved.
+
+Extraction now recognizes SQL injection regardless of case, handles common topic-before-negation forms (such as “cybersecurity isn't for me”), and distinguishes a lack of experience from a rejected topic. Case and repeated whitespace do not downgrade an exact keyword match from +2 to +1. Meaningful partial matches still score +1 under the rule below.
+
+Malformed lab URLs are displayed as unavailable instead of crashing guidance. UTF-8 BOM datasets are accepted; malformed in-memory records and IDs with surrounding whitespace get clear errors. The interactive session lets testers retry after a no-match result. Dataset warnings expose missing labs, possible duplicate names, and single-word names without modifying unverified source records.
+
 ## How the prototype makes decisions
 
 ### Experience survey
 
-The provisional rubric is: prior research participation → Experienced; otherwise advanced relevant coursework or a substantial relevant project → Intermediate; otherwise Novice. This is a transparent guidance setting, not a validated assessment. Users can override it. Class standing and GPA do not determine the tier or faculty ranking. All tiers use the same extraction and retrieval logic.
+The provisional rubric is: yes to all three questions → Experienced; yes to one or two → Intermediate; no to all three → Novice. The three questions cover prior research participation, advanced relevant coursework, and a substantial relevant project. This is a transparent guidance setting, not a validated assessment. Users can override it. Class standing and GPA do not determine the tier or faculty ranking. All tiers use the same extraction and retrieval logic.
 
 ### Masking
 
@@ -104,7 +112,8 @@ See [TESTING.md](TESTING.md) for a short independent team test session, expected
 | `keyword_extractor.py` | Research vocabulary/taxonomy and simple negation |
 | `faculty_data.py` | Shared dataset loading and validation |
 | `faculty_data.json` | Original team dataset; source data unchanged |
-| `tests/test_prototype.py` | Automated regressions and command-line tests |
+| `tests/test_prototype.py` | Original regressions and command-line tests |
+| `tests/test_regressions.py` | October 21 masking, extraction, scoring, data, and CLI regressions |
 | `TESTING.md` | Independent team testing instructions |
 | `.github/workflows/tests.yml` | Automated checks on GitHub |
 | `.gitignore` | Keeps generated Python caches and local results out of Git |

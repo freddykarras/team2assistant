@@ -6,7 +6,7 @@ import re
 import sys
 from urllib.parse import urlparse
 
-from faculty_data import DATA_PATH, load_faculty_database, vocabulary
+from faculty_data import DATA_PATH, load_faculty_database, vocabulary, validate_records, dataset_warnings
 from keyword_extractor import extract_keywords
 from masking_filter import mask_demographics
 
@@ -25,9 +25,9 @@ def classify_experience(research_experience, advanced_coursework, project_experi
     if any(type(answer) is not bool for answer in
            (research_experience, advanced_coursework, project_experience)):
         raise ValueError("Experience survey answers must be yes/no values.")
-    if research_experience:
+    if research_experience and advanced_coursework and project_experience:
         return "Experienced"
-    if advanced_coursework or project_experience:
+    if research_experience or advanced_coursework or project_experience:
         return "Intermediate"
     return "Novice"
 
@@ -44,10 +44,13 @@ def rank_faculty(tags, faculty_database=None):
     These are heuristic scores, not probabilities or verified lab availability.
     """
     records = load_faculty_database() if faculty_database is None else faculty_database
-    tags = sorted({tag.strip().lower() for tag in tags if tag.strip()})
+    validate_records(records)
+    if not isinstance(tags, (list, tuple)) or any(not isinstance(tag, str) for tag in tags):
+        raise ValueError("Research tags must be a list of text values.")
+    tags = sorted({" ".join(tag.lower().split()) for tag in tags if tag.strip()})
     ranked = []
     for faculty in records:
-        keywords = sorted({k.strip().lower() for k in faculty.get("keywords", [])})
+        keywords = sorted({" ".join(k.lower().split()) for k in faculty.get("keywords", [])})
         evidence = []
         for tag in tags:
             if tag in keywords:
@@ -78,14 +81,25 @@ def retrieve_faculty(tags, faculty_database=None):
 
 
 def _text(faculty, key):
-    return faculty.get(key) or "Not available in the dataset"
+    return (faculty.get(key) or "").strip() or "Not available in the dataset"
 
 
 def _safe_url(value):
     if not isinstance(value, str):
         return None
-    parsed = urlparse(value)
-    return value if parsed.scheme in ("https", "http") and parsed.netloc else None
+    value = value.strip()
+    if any(character.isspace() for character in value):
+        return None
+    try:
+        parsed = urlparse(value)
+        # Accessing port also validates malformed/out-of-range port numbers.
+        _ = parsed.port
+        if (parsed.scheme in ("https", "http") and parsed.hostname
+                and not parsed.username and not parsed.password):
+            return value
+    except ValueError:
+        pass
+    return None
 
 
 def faculty_details(faculty):
@@ -119,7 +133,7 @@ def _plain_explanation(tags):
 
 def generate_condition_b_scaffolded(faculty, experience_tier, matched_tags=None):
     tier = normalize_tier(experience_tier)
-    topics = matched_tags or faculty.get("keywords", [])
+    topics = faculty.get("keywords", []) if matched_tags is None else matched_tags
     topic = topics[0] if topics else "your research"
     output = f"[CONDITION B — {tier.upper()} GUIDANCE]\n" + faculty_details(faculty) + "\n\n"
     if tier == "Novice":
@@ -165,14 +179,15 @@ def run_pipeline(text, tier, condition="B", faculty_database=None, faculty_id=No
     if condition not in ("A", "B", "both"):
         raise ValueError("Condition must be A, B, or both.")
     records = load_faculty_database() if faculty_database is None else faculty_database
+    validate_records(records)
     masked = mask_demographics(text)
     tags = extract_keywords(masked, vocabulary(records))
     ranked = rank_faculty(tags, records)
-    result = {"prototype_version": "2", "tier": tier, "condition": condition,
+    result = {"prototype_version": "2.1", "tier": tier, "condition": condition,
               "tags": tags, "matches": ranked, "top_tie_count": 0,
               "selected_faculty_id": None, "guidance": {}, "warnings": [
                   "Scores reflect keyword evidence, not fit probabilities or confirmed openings.",
-                  "Masking and negation use limited rules; do not enter personal identifiers."]}
+                  "Masking and negation use limited rules; do not enter personal identifiers."] + dataset_warnings(records)}
     if not ranked:
         if faculty_id:
             raise ValueError("The selected faculty member has no supported match for this input.")
@@ -270,6 +285,15 @@ def interactive(records):
         print("Enter 1–10,000 characters.")
     result = run_pipeline(text, tier, condition, records)
     print("\n" + render_result(result))
+    while not result["matches"]:
+        text = input("Try another research description, or Enter to finish: ").strip()
+        if not text:
+            return
+        try:
+            result = run_pipeline(text, tier, condition, records)
+            print("\n" + render_result(result))
+        except ValueError as exc:
+            print(exc)
     if result["matches"]:
         while True:
             choice = input("\nEnter another candidate ID for its guidance, or Enter to finish: ").strip()
@@ -287,14 +311,14 @@ def main(argv=None):
     modes.add_argument("--demo", action="store_true", help="Run three fictional benchmarks with both conditions")
     modes.add_argument("--text", help="Research interest/project description (omit identifiers)")
     parser.add_argument("--tier", type=normalize_tier, help="Novice, Intermediate, or Experienced; required with --text")
-    parser.add_argument("--condition", choices=("A", "B", "both"), default="B")
+    parser.add_argument("--condition", choices=("A", "B", "both"), default=None)
     parser.add_argument("--faculty-id", help="Choose a supported faculty ID instead of the first candidate")
     parser.add_argument("--json", action="store_true", help="Print structured results (requires --text or --demo)")
     parser.add_argument("--data", default=str(DATA_PATH), help="Path to an alternate faculty JSON dataset")
     args = parser.parse_args(argv)
     if args.text is not None and not args.tier:
         parser.error("--tier is required with --text")
-    if args.text is None and (args.tier or args.faculty_id or args.condition != "B"):
+    if args.text is None and (args.tier or args.faculty_id or args.condition is not None):
         parser.error("--tier, --faculty-id, and --condition apply only to --text")
     if args.json and not (args.demo or args.text is not None):
         parser.error("--json requires --text or --demo")
@@ -307,7 +331,7 @@ def main(argv=None):
             else:
                 run_demo(records)
         elif args.text is not None:
-            result = run_pipeline(args.text, args.tier, args.condition, records, args.faculty_id)
+            result = run_pipeline(args.text, args.tier, args.condition or "B", records, args.faculty_id)
             print(json.dumps(result, indent=2) if args.json else render_result(result))
         else:
             interactive(records)

@@ -1,6 +1,7 @@
 """Shared dataset validation for extraction and retrieval (standard library only)."""
 
 import json
+import re
 from pathlib import Path
 
 DATA_PATH = Path(__file__).with_name("faculty_data.json")
@@ -9,7 +10,7 @@ DATA_PATH = Path(__file__).with_name("faculty_data.json")
 def load_faculty_database(path=DATA_PATH):
     """Load usable records or raise a clear ValueError; null optional fields are OK."""
     try:
-        data = json.loads(Path(path).read_text(encoding="utf-8"))
+        data = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     except (OSError, ValueError) as exc:
         raise ValueError(f"Cannot read faculty dataset {path}: {exc}") from exc
     if not isinstance(data, dict) or not isinstance(data.get("faculty"), list):
@@ -17,6 +18,13 @@ def load_faculty_database(path=DATA_PATH):
     records = data["faculty"]
     if not records:
         raise ValueError("Faculty dataset is empty.")
+    return validate_records(records)
+
+
+def validate_records(records):
+    """Validate in-memory records too; never modify caller data."""
+    if not isinstance(records, list):
+        raise ValueError("Faculty records must be a list.")
     seen = set()
     for index, record in enumerate(records):
         if not isinstance(record, dict):
@@ -24,6 +32,8 @@ def load_faculty_database(path=DATA_PATH):
         for field in ("id", "name"):
             if not isinstance(record.get(field), str) or not record[field].strip():
                 raise ValueError(f"Faculty record {index + 1} needs a nonempty {field}.")
+        if record["id"] != record["id"].strip():
+            raise ValueError(f"Faculty ID has surrounding whitespace: {record['id']!r}")
         if record["id"] in seen:
             raise ValueError(f"Duplicate faculty ID: {record['id']}")
         seen.add(record["id"])
@@ -40,4 +50,23 @@ def load_faculty_database(path=DATA_PATH):
 
 
 def vocabulary(records):
-    return sorted({k.strip().lower() for p in records for k in p["keywords"]})
+    return sorted({" ".join(k.lower().split()) for p in records for k in p["keywords"]})
+
+
+def dataset_warnings(records):
+    """Report missing and suspicious source data without inventing corrections."""
+    warnings = []
+    missing_labs = sum(not p.get("lab_name") or not p.get("lab_url") for p in records)
+    if missing_labs:
+        warnings.append(f"Lab details are incomplete for {missing_labs} of {len(records)} records; verify faculty sources before outreach.")
+    names = {}
+    for record in records:
+        name = record["name"].strip()
+        key = re.sub(r"\s*\(.*$", "", name).casefold()
+        names.setdefault(key, []).append(record["id"])
+        if len(name.split()) == 1:
+            warnings.append(f"Check the single-word faculty name for {record['id']}: {name}.")
+    for ids in names.values():
+        if len(ids) > 1:
+            warnings.append(f"Possible duplicate faculty entries: {', '.join(ids)}. Verify identities before treating them as separate people.")
+    return warnings

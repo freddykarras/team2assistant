@@ -28,6 +28,17 @@ Use `python3 main.py --text "YOUR DESCRIPTION" --tier Novice --condition both` f
 
 In the interactive session, answer an invalid yes/no response and an invalid tier once. The program should explain how to correct them. Select another displayed candidate ID and confirm the outreach changes to that faculty member.
 
+## Additional regression cases (v2.1)
+
+- `My name is Jane Smith, I have a 3.8 GPA and like AI.`: name masked, GPA retained in preprocessing, AI tags present.
+- `SQL injection`: security tags present for any capitalization.
+- `Cybersecurity isn't for me. I want machine learning.`: only the positive ML interest survives.
+- `I don't have research experience in machine learning.`: an experience gap does not remove the topic.
+- `Project name: machine learning for accessibility.`: project context is preserved.
+- An unclear interactive description: the session offers another try instead of ending immediately.
+
+These preprocessing behaviors are checked directly by `tests/test_regressions.py`; the normal interface intentionally does not print the student's description. All 79 records still need verified lab data; possible duplicate and incomplete names are warnings rather than guessed corrections.
+
 ## Check failure handling
 
 ```bash
