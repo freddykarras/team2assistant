@@ -49,6 +49,15 @@ TAXONOMY = {
     r"\bcs\s*[- ]?\s*4264\b": ["cybersecurity", "security and privacy"],
     r"\bcyber ?security\b|\bhacking\b|\bweb security\b|\bmalware\b|"
     r"\bvulnerabilit(?:y|ies)\b|\bpenetration testing\b|\bsql injection\b|\bcross[- ]site scripting\b": ["cybersecurity", "security and privacy"],
+    # Security project wording. Specific phrases only: bare "scanner" or "exploit"
+    # stay out because they are common outside security.
+    r"\bcapture[- ]the[- ]flag\b|\bctf\b|\breverse engineering\b|\bbuffer overflows?\b|"
+    r"\bbinary exploitation\b|\bexploit development\b|\bpen[- ]?test\w*|"
+    r"\b(?:vulnerability|port|network|security) scann(?:er|ers|ing)\b|"
+    r"\bthreat model\w*|\bsecure coding\b|\bpassword crack\w*": ["cybersecurity", "security and privacy"],
+    r"\bfirewalls?\b|\bintrusion detection\b": ["network security", "cybersecurity", "security and privacy"],
+    r"\bblockchain\b|\bsmart contracts?\b|\bcrypto ?currenc\w*|\bbitcoin\b|\bethereum\b":
+        ["blockchain data analytics"],
     r"\bprivacy\b": ["privacy", "security and privacy"],
     r"\bcryptography\b|\bencryption\b": ["applied cryptography"],
     # Data
@@ -61,6 +70,23 @@ TAXONOMY = {
     r"\bdistributed systems?\b": ["distributed systems"],
     r"\bnetwork(?:s|ing)?\b|\bwireless\b": ["wireless networks"],
     r"\boperating systems?\b|\bstorage\b": ["storage systems"],
+    # Systems project wording and verified course numbers.
+    # CS 3214 = Introduction to Computer Systems; CS 4284 = Systems & Networking
+    # Capstone (from VT CS course pages, which are older than the CS 4264 check;
+    # recheck against the current catalog before the study).
+    r"\bcs\s*[- ]?\s*3214\b": ["systems", "operating systems"],
+    r"\bcs\s*[- ]?\s*4284\b": ["systems", "networking"],
+    r"\blinux\b|\bunix\b|\bkernel (?:module|development|programming)s?\b|\bfile ?systems?\b|"
+    r"\bvirtual memory\b|\bsystem calls?\b|\bmulti-?thread\w*|\bprocess scheduling\b":
+        ["operating systems", "operating systems kernels"],
+    r"\bvirtual machines?\b|\bvms?\b": ["virtualization"],
+    r"\bdocker\b|\bkubernetes\b|\bmicroservices?\b|\baws\b|\bazure\b|\bserverless\b":
+        ["cloud computing", "cloud"],
+    r"\btcp\b|\budp\b|\bsockets?\b|\bpacket (?:capture|sniffing|loss)\b|\brouting protocols?\b":
+        ["networking", "networks"],
+    r"\bembedded\b|\bmicrocontrollers?\b|\barduino\b|\braspberry pi\b": ["embedded/iot systems"],
+    r"\bgpus?\b|\bcuda\b|\bopenmp\b|\bmessage passing interface\b|\bparallel (?:programming|computing)\b":
+        ["high-performance computing and computational science", "high performance computing"],
     # SWE / education / bio
     r"\bsoftware (?:engineering|development|testing)\b|\bdebugging\b|\bdevops\b": ["software engineering"],
     r"\bprogramming languages?\b|\bcompilers?\b": ["programming languages"],
