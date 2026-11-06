@@ -1,0 +1,497 @@
+[
+ {
+  "id": "s01",
+  "type": "direct",
+  "text": "I've been learning machine learning and want to work on neural networks.",
+  "gold": [
+   "machine learning",
+   "deep learning",
+   "applied machine learning",
+   "artificial intelligence"
+  ]
+ },
+ {
+  "id": "s02",
+  "type": "direct",
+  "text": "I'm interested in cybersecurity and how attackers break into web apps.",
+  "gold": [
+   "cybersecurity",
+   "security",
+   "security and privacy",
+   "internet security"
+  ]
+ },
+ {
+  "id": "s03",
+  "type": "direct",
+  "text": "I like human-computer interaction and designing interfaces people actually enjoy using.",
+  "gold": [
+   "human-computer interaction",
+   "usability studies",
+   "usability engineering"
+  ]
+ },
+ {
+  "id": "s04",
+  "type": "direct",
+  "text": "I want to do research in bioinformatics, especially with genomic data.",
+  "gold": [
+   "bioinformatics",
+   "computational biology",
+   "computational biology and bioinformatics"
+  ]
+ },
+ {
+  "id": "s05",
+  "type": "direct",
+  "text": "I want to study high performance computing and parallel programs on supercomputers.",
+  "gold": [
+   "high performance computing",
+   "high-performance computing and computational science",
+   "high-performance computing and systems"
+  ]
+ },
+ {
+  "id": "s06",
+  "type": "direct",
+  "text": "I'm curious about natural language processing and large language models.",
+  "gold": [
+   "natural language processing",
+   "large language models"
+  ]
+ },
+ {
+  "id": "s07",
+  "type": "direct",
+  "text": "I enjoy operating systems and how the kernel schedules processes.",
+  "gold": [
+   "operating systems",
+   "operating systems kernels",
+   "systems"
+  ]
+ },
+ {
+  "id": "s08",
+  "type": "direct",
+  "text": "I want to research computer science education and how students learn programming.",
+  "gold": [
+   "computer science education",
+   "digital education",
+   "pedagogy",
+   "learning sciences",
+   "technology education"
+  ]
+ },
+ {
+  "id": "s09",
+  "type": "direct",
+  "text": "I like algorithms and theory, like graph algorithms and complexity.",
+  "gold": [
+   "algorithms",
+   "algorithm design and analysis",
+   "data structures and algorithms"
+  ]
+ },
+ {
+  "id": "s10",
+  "type": "direct",
+  "text": "Quantum computing and quantum cryptography fascinate me.",
+  "gold": [
+   "quantum computing",
+   "quantum cryptography",
+   "quantum information"
+  ]
+ },
+ {
+  "id": "s11",
+  "type": "direct",
+  "text": "I want to work on data science projects with big datasets.",
+  "gold": [
+   "data science",
+   "big data",
+   "data analytics",
+   "data analysis",
+   "data mining"
+  ]
+ },
+ {
+  "id": "s12",
+  "type": "direct",
+  "text": "I'm into virtual reality and augmented reality applications.",
+  "gold": [
+   "virtual reality",
+   "augmented reality",
+   "augmented/virtual reality",
+   "extended reality",
+   "augmented/vr",
+   "virtual environments"
+  ]
+ },
+ {
+  "id": "s13",
+  "type": "paraphrase",
+  "text": "I want to teach computers to recognize faces and objects in photos.",
+  "gold": [
+   "computer vision",
+   "machine learning",
+   "deep learning",
+   "artificial intelligence"
+  ]
+ },
+ {
+  "id": "s14",
+  "type": "paraphrase",
+  "text": "I like keeping hackers out of computer systems and protecting people's data.",
+  "gold": [
+   "cybersecurity",
+   "security",
+   "security and privacy",
+   "privacy",
+   "network security"
+  ]
+ },
+ {
+  "id": "s15",
+  "type": "paraphrase",
+  "text": "I'm excited by making apps that are easy and pleasant for people to use.",
+  "gold": [
+   "human-computer interaction",
+   "usability studies",
+   "usability engineering",
+   "web and mobile interfaces",
+   "mobile applications"
+  ]
+ },
+ {
+  "id": "s16",
+  "type": "paraphrase",
+  "text": "I want to analyze DNA sequences to understand diseases.",
+  "gold": [
+   "bioinformatics",
+   "computational biology",
+   "computational biology and bioinformatics"
+  ]
+ },
+ {
+  "id": "s17",
+  "type": "paraphrase",
+  "text": "I'd love to build apps for phones.",
+  "gold": [
+   "mobile applications",
+   "mobile computing",
+   "web and mobile interfaces"
+  ]
+ },
+ {
+  "id": "s18",
+  "type": "paraphrase",
+  "text": "I'm interested in how Netflix and Spotify decide what to recommend to you.",
+  "gold": [
+   "recommender systems",
+   "machine learning",
+   "information personalization"
+  ]
+ },
+ {
+  "id": "s19",
+  "type": "paraphrase",
+  "text": "I want to make computers that understand and write human language.",
+  "gold": [
+   "natural language processing",
+   "large language models"
+  ]
+ },
+ {
+  "id": "s20",
+  "type": "paraphrase",
+  "text": "I love making video games and realistic 3D animation.",
+  "gold": [
+   "computer graphics",
+   "virtual environments"
+  ]
+ },
+ {
+  "id": "s21",
+  "type": "paraphrase",
+  "text": "I like building tiny devices and sensors that connect to the internet.",
+  "gold": [
+   "internet of things",
+   "embedded/iot systems",
+   "embedded mobile systems"
+  ]
+ },
+ {
+  "id": "s22",
+  "type": "paraphrase",
+  "text": "I want to make software that finds bugs automatically.",
+  "gold": [
+   "software testing",
+   "debugging and testing",
+   "software engineering",
+   "spectrum based fault location",
+   "spectrum-based fault location"
+  ]
+ },
+ {
+  "id": "s23",
+  "type": "paraphrase",
+  "text": "I'm curious how music can be analyzed and generated by computers.",
+  "gold": [
+   "computer music",
+   "music informatics"
+  ]
+ },
+ {
+  "id": "s24",
+  "type": "paraphrase",
+  "text": "I want to build systems that help doctors make better decisions with patient data.",
+  "gold": [
+   "healthcare",
+   "ai for healthcare",
+   "biomedical informatics natural language processing"
+  ]
+ },
+ {
+  "id": "s25",
+  "type": "paraphrase",
+  "text": "I'm interested in making the internet faster and more reliable.",
+  "gold": [
+   "networking",
+   "networks",
+   "network performance analysis",
+   "network measurement",
+   "wireless networks"
+  ]
+ },
+ {
+  "id": "s26",
+  "type": "paraphrase",
+  "text": "I want to study how people behave on social media and how information spreads.",
+  "gold": [
+   "social computing",
+   "social media content analysis",
+   "social network analysis",
+   "network science",
+   "computational social science"
+  ]
+ },
+ {
+  "id": "s27",
+  "type": "paraphrase",
+  "text": "I want to build big storage and cloud services that never lose data.",
+  "gold": [
+   "storage systems",
+   "cloud computing",
+   "cloud",
+   "distributed systems",
+   "system software for storage"
+  ]
+ },
+ {
+  "id": "s28",
+  "type": "paraphrase",
+  "text": "I'm curious about the ethics and fairness of AI.",
+  "gold": [
+   "ethics",
+   "computer science ethics",
+   "ai safety",
+   "social impact"
+  ]
+ },
+ {
+  "id": "s29",
+  "type": "multi",
+  "text": "I like machine learning for healthcare and also web security.",
+  "gold": [
+   "machine learning",
+   "ai for healthcare",
+   "healthcare",
+   "cybersecurity",
+   "security",
+   "security and privacy"
+  ]
+ },
+ {
+  "id": "s30",
+  "type": "multi",
+  "text": "I'm into robotics and self-driving cars.",
+  "gold": [
+   "machine learning",
+   "artificial intelligence",
+   "intelligent transportation systems",
+   "control systems",
+   "deep learning"
+  ]
+ },
+ {
+  "id": "s31",
+  "type": "multi",
+  "text": "I want to combine AI with education tools to help students learn.",
+  "gold": [
+   "digital education tools",
+   "computer science education",
+   "digital education",
+   "interactive learning tools",
+   "human-ai collaboration",
+   "learning analytics",
+   "artificial intelligence"
+  ]
+ },
+ {
+  "id": "s32",
+  "type": "multi",
+  "text": "I love eye tracking and how people look at screens.",
+  "gold": [
+   "eye tracking",
+   "human-computer interaction",
+   "usability studies"
+  ]
+ },
+ {
+  "id": "s33",
+  "type": "multi",
+  "text": "I'm interested in mapping and geographic data.",
+  "gold": [
+   "geographic information science",
+   "spatial data mining"
+  ]
+ },
+ {
+  "id": "s34",
+  "type": "multi",
+  "text": "I want to model how diseases like flu spread.",
+  "gold": [
+   "computational epidemiology",
+   "simulation",
+   "agent-based modeling",
+   "statistical modeling"
+  ]
+ },
+ {
+  "id": "s35",
+  "type": "multi",
+  "text": "I'm interested in blockchain and cryptocurrencies.",
+  "gold": [
+   "blockchain data analytics",
+   "applied cryptography"
+  ]
+ },
+ {
+  "id": "s36",
+  "type": "multi",
+  "text": "I want to protect machine learning models from being tricked.",
+  "gold": [
+   "adversarial machine learning",
+   "ai security and privacy",
+   "security and machine learning",
+   "ai safety",
+   "machine learning"
+  ]
+ },
+ {
+  "id": "s37",
+  "type": "negation",
+  "text": "I'm not interested in cybersecurity. I want machine learning.",
+  "gold": [
+   "machine learning",
+   "artificial intelligence",
+   "deep learning",
+   "applied machine learning"
+  ]
+ },
+ {
+  "id": "s38",
+  "type": "negation",
+  "text": "I took a security class but I don't enjoy it; I prefer human-computer interaction.",
+  "gold": [
+   "human-computer interaction",
+   "usability studies"
+  ]
+ },
+ {
+  "id": "s39",
+  "type": "none",
+  "text": "Not sure yet, I just like computers.",
+  "gold": []
+ },
+ {
+  "id": "s40",
+  "type": "none",
+  "text": "I want to get research experience for my resume.",
+  "gold": []
+ },
+ {
+  "id": "s41",
+  "type": "none",
+  "text": "I enjoy hiking and playing guitar.",
+  "gold": []
+ },
+ {
+  "id": "s42",
+  "type": "none",
+  "text": "I'm open to anything, I just need credit hours.",
+  "gold": []
+ },
+ {
+  "id": "s43",
+  "type": "none",
+  "text": "I'm a sophomore and I want to do research this semester.",
+  "gold": []
+ },
+ {
+  "id": "s44",
+  "type": "project",
+  "text": "I built a Python image classifier with PyTorch for a class project.",
+  "gold": [
+   "machine learning",
+   "deep learning",
+   "computer vision",
+   "artificial intelligence",
+   "applied machine learning"
+  ]
+ },
+ {
+  "id": "s45",
+  "type": "project",
+  "text": "I did a CTF and a port scan project in my security class.",
+  "gold": [
+   "cybersecurity",
+   "security",
+   "security and privacy",
+   "network security"
+  ]
+ },
+ {
+  "id": "s46",
+  "type": "project",
+  "text": "I wrote a small Linux file system in C.",
+  "gold": [
+   "operating systems",
+   "storage systems",
+   "systems",
+   "operating systems kernels"
+  ]
+ },
+ {
+  "id": "s47",
+  "type": "project",
+  "text": "I've used Docker and AWS for a cloud deployment project.",
+  "gold": [
+   "cloud computing",
+   "cloud",
+   "distributed systems"
+  ]
+ },
+ {
+  "id": "s48",
+  "type": "project",
+  "text": "I tutored intro CS and want to improve how programming is taught.",
+  "gold": [
+   "computer science education",
+   "pedagogy",
+   "digital education",
+   "innovative teaching",
+   "technology education"
+  ]
+ }
+]
